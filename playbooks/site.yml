@@ -1,0 +1,49 @@
+---
+# Step-CA Deployment Playbook
+# This is the main entry point for deploying step-ca
+
+- name: Deploy Smallstep step-ca Certificate Authority
+  hosts: ca_servers
+  become: true
+
+  pre_tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - stepca_init_password is defined
+          - stepca_init_password | length >= 16
+        fail_msg: >
+          stepca_init_password must be defined and at least 16 characters.
+          Set this in your vault or group_vars.
+
+    - name: Display deployment information
+      ansible.builtin.debug:
+        msg:
+          - "============================================"
+          - "  Deploying Smallstep step-ca"
+          - "============================================"
+          - "CA Name:      {{ stepca_init_name }}"
+          - "DNS Names:    {{ stepca_init_dns | join(', ') }}"
+          - "Bind Port:    {{ stepca_bind_port }}"
+          - "Data Dir:     {{ stepca_data_dir }}"
+          - "============================================"
+
+  roles:
+    - step_ca_docker
+
+  post_tasks:
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg:
+          - "============================================"
+          - "  step-ca Deployment Complete!"
+          - "============================================"
+          - ""
+          - "CA is now running at: https://{{ stepca_init_dns | first }}:{{ stepca_bind_port }}"
+          - ""
+          - "To bootstrap a client:"
+          - "  step ca bootstrap --ca-url https://{{ stepca_init_dns | first }}:{{ stepca_bind_port }} \\"
+          - "    --fingerprint $(step certificate fingerprint {{ stepca_data_dir }}/certs/root_ca.crt)"
+          - ""
+          - "Root CA certificate: {{ stepca_data_dir }}/certs/root_ca.crt"
+          - "============================================"

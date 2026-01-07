@@ -1,0 +1,93 @@
+---
+# Step-CA Docker Role - Main Tasks
+
+- name: Ensure Docker Compose dependencies are installed
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+    update_cache: true
+    state: present
+
+- name: Ensure group for container exists
+  ansible.builtin.group:
+    name: "{{ stepca_host_user }}"
+    gid: "{{ stepca_gid }}"
+    state: present
+    system: true
+
+- name: Ensure user for container exists (no login)
+  ansible.builtin.user:
+    name: "{{ stepca_host_user }}"
+    uid: "{{ stepca_uid }}"
+    group: "{{ stepca_host_user }}"
+    shell: /usr/sbin/nologin
+    create_home: false
+    system: true
+    state: present
+
+- name: Ensure data directory exists (owned by container user)
+  ansible.builtin.file:
+    path: "{{ stepca_data_dir }}"
+    state: directory
+    owner: "{{ stepca_uid }}"
+    group: "{{ stepca_gid }}"
+    mode: "0750"
+
+- name: Ensure compose directory exists
+  ansible.builtin.file:
+    path: "{{ stepca_compose_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Template Docker Compose file
+  ansible.builtin.template:
+    src: "docker-compose.stepca.yml.j2"
+    dest: "{{ stepca_compose_dir }}/docker-compose.yml"
+    mode: "0644"
+  notify: Restart step-ca
+
+- name: Bring up step-ca with Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ stepca_compose_dir }}"
+    state: present
+    pull: always
+    recreate: auto
+  register: compose_result
+
+- name: Wait for step-ca initialization to complete (ca.json created)
+  ansible.builtin.wait_for:
+    path: "{{ stepca_data_dir }}/config/ca.json"
+    timeout: 60
+
+- name: Ensure jq is installed for JSON manipulation
+  ansible.builtin.apt:
+    name: jq
+    state: present
+
+- name: Check if ACME provisioner already has claims configured
+  ansible.builtin.shell: |
+    jq -e '.authority.provisioners[] | select(.type == "ACME") | has("claims")' \
+      "{{ stepca_data_dir }}/config/ca.json"
+  register: acme_claims_check
+  changed_when: false
+  failed_when: false
+
+- name: Configure certificate validity claims for ACME provisioner
+  ansible.builtin.shell: |
+    jq '(.authority.provisioners[] | select(.type == "ACME") | .claims) = {
+      "minTLSCertDuration": "{{ stepca_cert_min_duration }}",
+      "defaultTLSCertDuration": "{{ stepca_cert_default_duration }}",
+      "maxTLSCertDuration": "{{ stepca_cert_max_duration }}"
+    }' "{{ stepca_data_dir }}/config/ca.json" > "{{ stepca_data_dir }}/config/ca.json.tmp" && \
+    mv "{{ stepca_data_dir }}/config/ca.json.tmp" "{{ stepca_data_dir }}/config/ca.json"
+  when: acme_claims_check.rc != 0
+  register: claims_added
+  notify: Restart step-ca
+
+- name: Set correct ownership on ca.json
+  ansible.builtin.file:
+    path: "{{ stepca_data_dir }}/config/ca.json"
+    owner: "{{ stepca_uid }}"
+    group: "{{ stepca_gid }}"
+    mode: "0600"
+  when: claims_added is changed

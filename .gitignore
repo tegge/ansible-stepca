@@ -1,0 +1,51 @@
+# Ansible
+*.retry
+inventory.yml
+!inventories/example/inventory.yml
+
+# Vault files (encrypted secrets)
+vault.yml
+**/vault.yml
+!**/*vault.example.yml
+
+# Environment-specific files
+group_vars/*/vars.yml
+host_vars/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+venv/
+.venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Old structure (to be removed after migration)
+ansible/

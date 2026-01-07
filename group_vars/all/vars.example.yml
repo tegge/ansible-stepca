@@ -1,0 +1,83 @@
+---
+# Step-CA Configuration Variables
+# Copy this file to vars.yml and customize for your environment
+# Sensitive values should be stored in an encrypted vault.yml
+
+#==============================================================================
+# REQUIRED VARIABLES
+#==============================================================================
+
+# CA initialization password (minimum 16 characters)
+# IMPORTANT: Store this in an encrypted vault file, not here!
+# stepca_init_password: "{{ vault_stepca_password }}"
+
+# DNS names for the CA certificate
+stepca_init_dns:
+  - "ca.example.com"
+  - "localhost"
+
+#==============================================================================
+# CA IDENTITY
+#==============================================================================
+
+# Name of your Certificate Authority
+stepca_init_name: "My Organization Private CA"
+
+#==============================================================================
+# DIRECTORY PATHS
+#==============================================================================
+
+# Base directory for Docker Compose files
+stepca_compose_dir: "/data/step-ca"
+
+# Data directory for CA state (certificates, keys, database)
+stepca_data_dir: "/data/step-ca/volume"
+
+#==============================================================================
+# NETWORK CONFIGURATION
+#==============================================================================
+
+# Port to expose on the host
+stepca_bind_port: 8443
+
+# Port inside the container (usually same as bind_port)
+stepca_container_port: 8443
+
+# DNS servers for the container
+stepca_dns_servers:
+  - "1.1.1.1"
+  - "8.8.8.8"
+
+#==============================================================================
+# USER/GROUP CONFIGURATION
+#==============================================================================
+
+# System user for running step-ca container
+stepca_host_user: "stepca"
+stepca_uid: 1501
+stepca_gid: 1501
+
+#==============================================================================
+# CERTIFICATE VALIDITY SETTINGS
+#==============================================================================
+
+# Go duration format: 5m, 1h, 24h, 720h (30 days), 2160h (90 days), 8760h (1 year)
+stepca_cert_min_duration: "5m"
+stepca_cert_default_duration: "2160h"    # 90 days
+stepca_cert_max_duration: "8760h"        # 1 year
+
+#==============================================================================
+# DOCKER CONFIGURATION
+#==============================================================================
+
+# Docker image to use
+stepca_docker_image: "smallstep/step-ca:latest"
+
+# Container name
+stepca_container_name: "ca"
+
+# Restart policy
+stepca_restart_policy: "unless-stopped"
+
+# Enable ACME provisioner
+stepca_init_acme: true

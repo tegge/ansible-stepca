@@ -1,0 +1,18 @@
+---
+# Example Inventory for step-ca deployment
+# Copy this file and modify for your environment
+
+all:
+  children:
+    ca_servers:
+      hosts:
+        # Replace with your CA server hostname or IP
+        ca.example.com:
+          ansible_host: 192.168.1.100
+          ansible_user: ansible
+          ansible_python_interpreter: /usr/bin/python3
+
+          # Optional: Override DNS names for this host
+          # stepca_init_dns:
+          #   - ca.example.com
+          #   - ca.internal.lan
