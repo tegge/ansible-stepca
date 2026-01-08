@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: step_ca_docker
-  author: tegge@Github
+  author: Tegge@Github
   description: Deploy Smallstep step-ca Certificate Authority in Docker
   company: ""
   license: MIT
