@@ -10,10 +10,10 @@
     - name: Validate required variables
       ansible.builtin.assert:
         that:
-          - stepca_init_password is defined
-          - stepca_init_password | length >= 16
+          - step_ca_docker_init_password is defined
+          - step_ca_docker_init_password | length >= 16
         fail_msg: >
-          stepca_init_password must be defined and at least 16 characters.
+          step_ca_docker_init_password must be defined and at least 16 characters.
           Set this in your vault or group_vars.
 
     - name: Display deployment information
@@ -22,14 +22,14 @@
           - "============================================"
           - "  Deploying Smallstep step-ca"
           - "============================================"
-          - "CA Name:      {{ stepca_init_name }}"
-          - "DNS Names:    {{ stepca_init_dns | join(', ') }}"
-          - "Bind Port:    {{ stepca_bind_port }}"
-          - "Data Dir:     {{ stepca_data_dir }}"
+          - "CA Name:      {{ step_ca_docker_init_name }}"
+          - "DNS Names:    {{ step_ca_docker_init_dns | join(', ') }}"
+          - "Bind Port:    {{ step_ca_docker_bind_port }}"
+          - "Data Dir:     {{ step_ca_docker_data_dir }}"
           - "============================================"
 
   roles:
-    - step_ca_docker
+    - role: step_ca_docker
 
   post_tasks:
     - name: Display completion message
@@ -39,11 +39,11 @@
           - "  step-ca Deployment Complete!"
           - "============================================"
           - ""
-          - "CA is now running at: https://{{ stepca_init_dns | first }}:{{ stepca_bind_port }}"
+          - "CA is now running at: https://{{ step_ca_docker_init_dns | first }}:{{ step_ca_docker_bind_port }}"
           - ""
           - "To bootstrap a client:"
-          - "  step ca bootstrap --ca-url https://{{ stepca_init_dns | first }}:{{ stepca_bind_port }} \\"
-          - "    --fingerprint $(step certificate fingerprint {{ stepca_data_dir }}/certs/root_ca.crt)"
+          - "  step ca bootstrap --ca-url https://{{ step_ca_docker_init_dns | first }}:{{ step_ca_docker_bind_port }} \\"
+          - "    --fingerprint $(step certificate fingerprint {{ step_ca_docker_data_dir }}/certs/root_ca.crt)"
           - ""
-          - "Root CA certificate: {{ stepca_data_dir }}/certs/root_ca.crt"
+          - "Root CA certificate: {{ step_ca_docker_data_dir }}/certs/root_ca.crt"
           - "============================================"

@@ -10,16 +10,16 @@
 
 - name: Ensure group for container exists
   ansible.builtin.group:
-    name: "{{ stepca_host_user }}"
-    gid: "{{ stepca_gid }}"
+    name: "{{ step_ca_docker_host_user }}"
+    gid: "{{ step_ca_docker_gid }}"
     state: present
     system: true
 
 - name: Ensure user for container exists (no login)
   ansible.builtin.user:
-    name: "{{ stepca_host_user }}"
-    uid: "{{ stepca_uid }}"
-    group: "{{ stepca_host_user }}"
+    name: "{{ step_ca_docker_host_user }}"
+    uid: "{{ step_ca_docker_uid }}"
+    group: "{{ step_ca_docker_host_user }}"
     shell: /usr/sbin/nologin
     create_home: false
     system: true
@@ -27,36 +27,36 @@
 
 - name: Ensure data directory exists (owned by container user)
   ansible.builtin.file:
-    path: "{{ stepca_data_dir }}"
+    path: "{{ step_ca_docker_data_dir }}"
     state: directory
-    owner: "{{ stepca_uid }}"
-    group: "{{ stepca_gid }}"
+    owner: "{{ step_ca_docker_uid }}"
+    group: "{{ step_ca_docker_gid }}"
     mode: "0750"
 
 - name: Ensure compose directory exists
   ansible.builtin.file:
-    path: "{{ stepca_compose_dir }}"
+    path: "{{ step_ca_docker_compose_dir }}"
     state: directory
     mode: "0755"
 
 - name: Template Docker Compose file
   ansible.builtin.template:
     src: "docker-compose.stepca.yml.j2"
-    dest: "{{ stepca_compose_dir }}/docker-compose.yml"
+    dest: "{{ step_ca_docker_compose_dir }}/docker-compose.yml"
     mode: "0644"
   notify: Restart step-ca
 
 - name: Bring up step-ca with Docker Compose
   community.docker.docker_compose_v2:
-    project_src: "{{ stepca_compose_dir }}"
+    project_src: "{{ step_ca_docker_compose_dir }}"
     state: present
     pull: always
     recreate: auto
-  register: compose_result
+  register: step_ca_docker_compose_result
 
 - name: Wait for step-ca initialization to complete (ca.json created)
   ansible.builtin.wait_for:
-    path: "{{ stepca_data_dir }}/config/ca.json"
+    path: "{{ step_ca_docker_data_dir }}/config/ca.json"
     timeout: 60
 
 - name: Ensure jq is installed for JSON manipulation
@@ -65,29 +65,36 @@
     state: present
 
 - name: Check if ACME provisioner already has claims configured
-  ansible.builtin.shell: |
-    jq -e '.authority.provisioners[] | select(.type == "ACME") | has("claims")' \
-      "{{ stepca_data_dir }}/config/ca.json"
-  register: acme_claims_check
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      jq -e '.authority.provisioners[] | select(.type == "ACME") | has("claims")' \
+        "{{ step_ca_docker_data_dir }}/config/ca.json"
+    executable: /bin/bash
+  register: step_ca_docker_acme_claims_check
   changed_when: false
   failed_when: false
 
 - name: Configure certificate validity claims for ACME provisioner
-  ansible.builtin.shell: |
-    jq '(.authority.provisioners[] | select(.type == "ACME") | .claims) = {
-      "minTLSCertDuration": "{{ stepca_cert_min_duration }}",
-      "defaultTLSCertDuration": "{{ stepca_cert_default_duration }}",
-      "maxTLSCertDuration": "{{ stepca_cert_max_duration }}"
-    }' "{{ stepca_data_dir }}/config/ca.json" > "{{ stepca_data_dir }}/config/ca.json.tmp" && \
-    mv "{{ stepca_data_dir }}/config/ca.json.tmp" "{{ stepca_data_dir }}/config/ca.json"
-  when: acme_claims_check.rc != 0
-  register: claims_added
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      jq '(.authority.provisioners[] | select(.type == "ACME") | .claims) = {
+        "minTLSCertDuration": "{{ step_ca_docker_cert_min_duration }}",
+        "defaultTLSCertDuration": "{{ step_ca_docker_cert_default_duration }}",
+        "maxTLSCertDuration": "{{ step_ca_docker_cert_max_duration }}"
+      }' "{{ step_ca_docker_data_dir }}/config/ca.json" > "{{ step_ca_docker_data_dir }}/config/ca.json.tmp" && \
+      mv "{{ step_ca_docker_data_dir }}/config/ca.json.tmp" "{{ step_ca_docker_data_dir }}/config/ca.json"
+    executable: /bin/bash
+  when: step_ca_docker_acme_claims_check.rc != 0
+  changed_when: true
+  register: step_ca_docker_claims_added
   notify: Restart step-ca
 
 - name: Set correct ownership on ca.json
   ansible.builtin.file:
-    path: "{{ stepca_data_dir }}/config/ca.json"
-    owner: "{{ stepca_uid }}"
-    group: "{{ stepca_gid }}"
+    path: "{{ step_ca_docker_data_dir }}/config/ca.json"
+    owner: "{{ step_ca_docker_uid }}"
+    group: "{{ step_ca_docker_gid }}"
     mode: "0600"
-  when: claims_added is changed
+  when: step_ca_docker_claims_added is defined and step_ca_docker_claims_added is changed

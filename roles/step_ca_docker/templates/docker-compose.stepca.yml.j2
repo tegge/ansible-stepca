@@ -1,24 +1,24 @@
 services:
   step-ca:
-    image: {{ stepca_docker_image }}
-    container_name: {{ stepca_container_name }}
-    user: "{{ stepca_uid }}:{{ stepca_gid }}"
+    image: {{ step_ca_docker_docker_image }}
+    container_name: {{ step_ca_docker_container_name }}
+    user: "{{ step_ca_docker_uid }}:{{ step_ca_docker_gid }}"
     environment:
       - HOME=/home/step
       - STEPPATH=/home/step
-      - DOCKER_STEPCA_INIT_NAME={{ stepca_init_name }}
-      - DOCKER_STEPCA_INIT_DNS_NAMES={{ stepca_init_dns | join(",") }}
-      - DOCKER_STEPCA_INIT_PASSWORD={{ stepca_init_password }}
-      - DOCKER_STEPCA_INIT_ADDRESS={{ stepca_init_address | default(":8443") }}
-      - DOCKER_STEPCA_INIT_ACME={{ stepca_init_acme | default(true) | lower }}
+      - DOCKER_STEPCA_INIT_NAME={{ step_ca_docker_init_name }}
+      - DOCKER_STEPCA_INIT_DNS_NAMES={{ step_ca_docker_init_dns | join(",") }}
+      - DOCKER_STEPCA_INIT_PASSWORD={{ step_ca_docker_init_password }}
+      - DOCKER_STEPCA_INIT_ADDRESS={{ step_ca_docker_init_address | default(":8443") }}
+      - DOCKER_STEPCA_INIT_ACME={{ step_ca_docker_init_acme | default(true) | lower }}
     volumes:
-      - "{{ stepca_data_dir }}:/home/step"
+      - "{{ step_ca_docker_data_dir }}:/home/step"
     ports:
-      - "{{ stepca_bind_port }}:{{ stepca_container_port }}"
-    restart: {{ stepca_restart_policy }}
-{% if stepca_dns_servers is defined and stepca_dns_servers | length > 0 %}
+      - "{{ step_ca_docker_bind_port }}:{{ step_ca_docker_container_port }}"
+    restart: {{ step_ca_docker_restart_policy }}
+{% if step_ca_docker_dns_servers is defined and step_ca_docker_dns_servers | length > 0 %}
     dns:
-{% for dns in stepca_dns_servers %}
+{% for dns in step_ca_docker_dns_servers %}
       - {{ dns }}
 {% endfor %}
 {% endif %}

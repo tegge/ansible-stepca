@@ -3,6 +3,6 @@
 
 - name: Restart step-ca
   community.docker.docker_container:
-    name: "{{ stepca_container_name }}"
+    name: "{{ step_ca_docker_container_name }}"
     state: started
     restart: true

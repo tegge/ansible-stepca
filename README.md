@@ -39,7 +39,7 @@ ansible-galaxy install -r requirements.yml
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/ansible-stepca.git
+   git clone https://github.com/tegge/ansible-stepca.git
    cd ansible-stepca
    ```
 
@@ -280,7 +280,7 @@ Contributions are welcome! Please:
 
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/ansible-stepca.git
+git clone https://github.com/tegge/ansible-stepca.git
 cd ansible-stepca
 
 # Install dev dependencies

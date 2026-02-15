@@ -3,40 +3,40 @@
 # Override these in your group_vars or host_vars
 
 # System user configuration
-stepca_host_user: "stepca"
-stepca_uid: 1501
-stepca_gid: 1501
+step_ca_docker_host_user: "stepca"
+step_ca_docker_uid: 1501
+step_ca_docker_gid: 1501
 
 # Directory paths
-stepca_data_dir: "/data/step-ca/volume"
-stepca_compose_dir: "/data/step-ca"
+step_ca_docker_data_dir: "/data/step-ca/volume"
+step_ca_docker_compose_dir: "/data/step-ca"
 
 # Network configuration
-stepca_bind_port: 8443
-stepca_container_port: 8443
+step_ca_docker_bind_port: 8443
+step_ca_docker_container_port: 8443
 
 # CA initialization settings
-stepca_init_name: "My Private CA"
-stepca_init_dns: 
+step_ca_docker_init_name: "My Private CA"
+step_ca_docker_init_dns:
   - "ca.example.com"
   - "localhost"
-stepca_init_address: ":8443"
+step_ca_docker_init_address: ":8443"
 
 # Certificate validity duration settings (Go duration format)
 # 720h = 30 days, 2160h = 90 days, 8760h = 1 year
-stepca_cert_min_duration: "5m"
-stepca_cert_default_duration: "2160h"    # 90 days
-stepca_cert_max_duration: "8760h"        # 1 year
+step_ca_docker_cert_min_duration: "5m"
+step_ca_docker_cert_default_duration: "2160h"    # 90 days
+step_ca_docker_cert_max_duration: "8760h"        # 1 year
 
 # Docker image configuration
-stepca_docker_image: "smallstep/step-ca:latest"
-stepca_container_name: "ca"
-stepca_restart_policy: "unless-stopped"
+step_ca_docker_docker_image: "smallstep/step-ca:latest"
+step_ca_docker_container_name: "ca"
+step_ca_docker_restart_policy: "unless-stopped"
 
 # DNS servers for container (customize for your environment)
-stepca_dns_servers:
+step_ca_docker_dns_servers:
   - "1.1.1.1"
   - "8.8.8.8"
 
 # Enable ACME provisioner during initialization
-stepca_init_acme: true
+step_ca_docker_init_acme: true
